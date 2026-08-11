@@ -3,71 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>도장 시뮬레이터: 신너 희석비 (모바일 반응형)</title>
+    <title>신너 희석비 시뮬레이터 PRO</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #0f172a; margin: 0; padding: 15px; text-align: center; color: #f8fafc; }
+        /* 트렌디한 앱 스타일 디자인 (글래스모피즘, 네온 쉐도우) */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        * { box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
+        body { background-color: #0b1120; margin: 0; padding: 15px; text-align: center; color: #f8fafc; }
         
-        .game-board { background: linear-gradient(145deg, #1e293b, #0f172a); width: 100%; max-width: 400px; margin: 0 auto; padding: 25px 20px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1); border: 1px solid #334155; }
+        .game-board { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); width: 100%; max-width: 450px; margin: 0 auto; padding: 30px 20px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); }
         
-        h2 { color: #38bdf8; font-size: 22px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(56,189,248,0.3); letter-spacing: 1px; }
-        p.subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
+        h2 { color: #fff; font-size: 24px; font-weight: 900; margin-bottom: 5px; text-shadow: 0 0 20px rgba(14, 165, 233, 0.6); letter-spacing: -0.5px; }
+        p.subtitle { color: #38bdf8; font-size: 11px; font-weight: 700; margin-bottom: 30px; letter-spacing: 2px; }
         
-        #panel-container { position: relative; width: 300px; height: 250px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #475569, #1e293b); border: 3px solid #020617; border-radius: 12px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden; }
-        canvas { position: absolute; top: 0; left: 0; z-index: 1; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        /* 철판 화면 디자인 업그레이드 */
+        #panel-container { position: relative; width: 100%; max-width: 320px; height: 260px; margin: 0 auto 20px auto; background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #334155; border-radius: 16px; box-shadow: inset 0 10px 30px rgba(0,0,0,0.9); overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4)); }
         
-        #gun-container { position: absolute; top: 20px; left: -50px; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(5px 10px 8px rgba(0,0,0,0.6)); }
-        #spray-gun { width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 2px solid #64748b; margin-bottom: -5px; transform: none; }
+        /* 총기 애니메이션 */
+        #gun-container { position: absolute; top: 20px; left: -60px; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 15px 20px rgba(0,0,0,0.8)); }
+        #spray-gun { width: 75px; height: 75px; object-fit: cover; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2); margin-bottom: -5px; }
         
-        .cone-solid { width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid rgba(14, 116, 144, 0.7); }
-        .cone-split { width: 40px; height: 40px; background: linear-gradient(90deg, rgba(14,116,144,0.9) 20%, rgba(14,116,144,0.2) 20%, rgba(14,116,144,0.2) 80%, rgba(14,116,144,0.9) 80%); clip-path: polygon(50% 0, 0 100%, 100% 100%); }
+        /* 분사 형태 그래픽 */
+        .cone-solid { width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid rgba(14, 165, 233, 0.7); }
+        .cone-split { width: 40px; height: 40px; background: linear-gradient(90deg, rgba(14,165,233,0.9) 20%, rgba(14,165,233,0.1) 20%, rgba(14,165,233,0.1) 80%, rgba(14,165,233,0.9) 80%); clip-path: polygon(50% 0, 0 100%, 100% 100%); }
         .hidden { display: none !important; }
 
-        #photo-box { display: none; margin-top: 15px; animation: slideUp 0.5s ease-out; width: 100%; }
-        #result-photo { width: 100%; max-height: 250px; object-fit: cover; border-radius: 12px; border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56,189,248,0.2); background-color: #1e293b; color: #94a3b8; font-size: 14px; text-align: center; line-height: 100px; }
+        /* 컨트롤 패널 및 네온 슬라이더 */
+        .controls { text-align: left; background: rgba(15, 23, 42, 0.6); padding: 25px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.03); }
+        .slider-group label { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 15px; color: #e2e8f0; font-size: 15px; }
+        .gauge-value { color: #38bdf8; font-size: 24px; font-weight: 900; text-shadow: 0 0 15px rgba(56,189,248,0.6); }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 10px; background: #0f172a; border-radius: 6px; outline: none; border: 1px solid #334155; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; background: #0ea5e9; border-radius: 50%; cursor: pointer; box-shadow: 0 0 20px rgba(14, 165, 233, 0.8); border: 3px solid #fff; transition: transform 0.1s; }
+        input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.1); }
+        
+        /* 버튼 디자인 */
+        .btn-start { width: 100%; padding: 16px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; font-size: 16px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; margin-top: 25px; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3); transition: all 0.3s; letter-spacing: 1px; }
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(14, 165, 233, 0.5); background: linear-gradient(135deg, #0284c7, #1d4ed8); }
+        .btn-start:active { transform: translateY(1px); }
+        .btn-start:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; transform: none; }
+        
+        /* 고급스러운 결과창 디자인 */
+        #result-box { margin-top: 15px; padding: 15px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: none; flex-direction: column; gap: 15px; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .controls { text-align: left; background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid #334155; }
-        .slider-group label { font-weight: bold; display: block; margin-bottom: 12px; color: #cbd5e1; font-size: 14px; }
-        .gauge-value { color: #38bdf8; font-size: 20px; font-weight: 900; text-shadow: 0 0 10px rgba(56,189,248,0.5); }
         
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; background: #0f172a; border-radius: 5px; outline: none; border: 1px solid #334155; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: #38bdf8; border-radius: 50%; cursor: pointer; box-shadow: 0 0 15px #38bdf8; border: 2px solid #fff; transition: transform 0.1s; }
+        #result-photo { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; border: 2px solid transparent; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        #result-text { font-size: 14px; color: #cbd5e1; line-height: 1.6; text-align: left; word-break: keep-all; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
+        .title-error { color: #f43f5e; font-weight: 900; font-size: 16px; display: block; margin-bottom: 5px; }
+        .title-success { color: #10b981; font-weight: 900; font-size: 16px; display: block; margin-bottom: 5px; }
         
-        .btn-start { width: 100%; padding: 16px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(37,99,235,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.3); transition: all 0.2s; }
-        .btn-start:disabled { background: #475569; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
-        
-        #result-text { margin-top: 15px; font-size: 15px; font-weight: bold; min-height: 25px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); word-break: keep-all; }
-        .reset-btn { background: none; border: none; color: #64748b; cursor: pointer; margin-top: 20px; font-size: 14px; text-decoration: underline; width: 100%; }
+        .reset-btn { background: none; border: none; color: #64748b; cursor: pointer; margin-top: 20px; font-size: 14px; font-weight: 700; text-decoration: underline; width: 100%; transition: color 0.2s; }
+        .reset-btn:hover { color: #cbd5e1; }
     </style>
 </head>
 <body>
 
 <div class="game-board">
-    <h2>🎯 스마트 도장 시뮬레이터</h2>
-    <p class="subtitle">THINNER DILUTION RATIO SYSTEM</p>
+    <h2>💧 신너 희석비 시뮬레이터 PRO</h2>
+    <p class="subtitle">SMART THINNER RATIO UI</p>
 
+    <!-- 시편(철판) 화면 -->
     <div id="panel-container">
-        <canvas id="paint-canvas" width="300" height="250"></canvas>
+        <canvas id="paint-canvas" width="320" height="260"></canvas>
         <div id="gun-container">
             <img id="spray-gun" src="KakaoTalk_20260810_204330582.jpg" alt="실제 건">
             <div id="spray-cone" class="hidden"></div>
         </div>
     </div>
 
-    <!-- 결과 사진 -->
-    <div id="photo-box">
+    <!-- 결과창 (초기엔 숨김) -->
+    <div id="result-box">
         <img id="result-photo" src="" alt="결과 사진">
+        <div id="result-text"></div>
     </div>
 
-    <div id="result-text" style="color: #64748b;">시스템 대기 중...</div>
-
+    <!-- 컨트롤 패널 -->
     <div class="controls">
         <div class="slider-group">
-            <label>💧 신너(Thinner) 희석비 세팅: <span id="thinner-val" class="gauge-value">15</span><span style="color:#94a3b8;"> %</span></label>
+            <label>
+                <span>신너(Thinner) 희석비 세팅</span>
+                <span><span id="thinner-val" class="gauge-value">15</span><span style="color:#94a3b8; font-weight: 400;"> %</span></span>
+            </label>
             <input type="range" id="thinner-slider" min="0" max="100" value="15" oninput="updateThinner()">
         </div>
-        <button class="btn-start" id="start-btn" onclick="startSpray()">도장 작업 실행 ▶</button>
+        <button class="btn-start" id="start-btn" onclick="startSpray()">도장 테스트 시작</button>
     </div>
     
     <button class="reset-btn" onclick="resetGame()">🔄 시스템 초기화 (Reset)</button>
@@ -84,14 +103,17 @@
         const thinnerRatio = parseInt(document.getElementById('thinner-slider').value);
         
         document.getElementById('start-btn').disabled = true;
-        document.getElementById('start-btn').innerText = "작업 진행 중...";
+        document.getElementById('start-btn').innerText = "스프레이 로봇 가동 중...";
         resetCanvas();
 
         const canvas = document.getElementById('paint-canvas');
         const ctx = canvas.getContext('2d');
         const gunBox = document.getElementById('gun-container');
         const sprayCone = document.getElementById('spray-cone');
-        const resultText = document.getElementById('result-text');
+        const resultBox = document.getElementById('result-box');
+        
+        // 결과창 숨기기
+        resultBox.style.display = 'none';
         
         sprayCone.classList.remove('hidden', 'cone-solid', 'cone-split');
         if (thinnerRatio < 10) {
@@ -100,13 +122,9 @@
             sprayCone.classList.add('cone-solid');
         }
 
-        resultText.innerText = "스프레이 로봇 가동 중 (오버랩 50%)...";
-        resultText.style.color = "#38bdf8";
-
         let x = 0;           
         let y = -10; 
         let direction = 1;   
-        
         const speed = 6;     
         const overlapY = 45; 
 
@@ -115,18 +133,19 @@
             gunBox.style.left = (x - 15) + 'px'; 
             gunBox.style.top = y + 'px';
 
+            // 신너 비율에 따른 분사 이펙트
             if (thinnerRatio < 10) {
-                ctx.fillStyle = 'rgba(14, 116, 144, 0.2)'; 
+                ctx.fillStyle = 'rgba(14, 165, 233, 0.15)'; 
                 ctx.beginPath(); ctx.arc(x + 22, y + 75, 20, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = 'rgba(14, 116, 144, 0.9);'; 
+                ctx.fillStyle = 'rgba(14, 165, 233, 0.9);'; 
                 ctx.beginPath(); ctx.arc(x + 8, y + 75, 10, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + 36, y + 75, 10, 0, Math.PI * 2); ctx.fill();
             } else {
-                ctx.fillStyle = 'rgba(14, 116, 144, 0.45)'; 
+                ctx.fillStyle = 'rgba(14, 165, 233, 0.45)'; 
                 ctx.beginPath(); ctx.arc(x + 22, y + 75, 25, 0, Math.PI * 2); ctx.fill();
             }
 
-            if (x >= 280 && direction === 1) {
+            if (x >= 300 && direction === 1) {
                 direction = -1;
                 y += overlapY; 
             } else if (x <= -20 && direction === -1) {
@@ -134,7 +153,7 @@
                 y += overlapY;
             }
 
-            if (y > 170) {
+            if (y > 180) {
                 clearInterval(animationTimer);
                 sprayCone.classList.add('hidden'); 
                 showResult(thinnerRatio, ctx);
@@ -143,35 +162,33 @@
     }
 
     function showResult(thinnerRatio, ctx) {
-        const photoBox = document.getElementById('photo-box');
+        const resultBox = document.getElementById('result-box');
         const resultPhoto = document.getElementById('result-photo');
         const resultText = document.getElementById('result-text');
         const startBtn = document.getElementById('start-btn');
 
-        photoBox.style.display = 'block';
+        resultBox.style.display = 'flex';
         startBtn.disabled = false;
-        startBtn.innerText = "도장 작업 재실행 ▶";
+        startBtn.innerText = "다시 테스트하기";
 
         if (thinnerRatio < 10) {
             resultPhoto.src = "fingering.jpg"; 
-            resultPhoto.style.borderColor = "#f43f5e"; 
-            resultText.innerHTML = "❌ <b style='color:#f43f5e;'>[핑거링 결함]</b> 신너 부족 (10% 미만)<br><span style='font-size:13px; color:#cbd5e1;'>미립화 불량으로 양쪽이 갈라지고 얇게 도장됨.</span>";
-            resultText.style.color = "#f8fafc";
+            resultPhoto.style.borderColor = "rgba(244, 63, 94, 0.8)"; 
+            resultText.innerHTML = "<span class='title-error'>❌ [핑거링 결함] 신너 부족 (10% 미만)</span>도료의 점도가 너무 높아 미립화가 정상적으로 이루어지지 않습니다. 가장자리가 갈라지는 핑거링(Fingering) 현상이 발생했습니다.";
         } else if (thinnerRatio >= 10 && thinnerRatio <= 25) {
             resultPhoto.src = "normal.jpg"; 
-            resultPhoto.style.borderColor = "#10b981"; 
-            resultText.innerHTML = "✅ <b style='color:#10b981;'>[A급 도막]</b> 적정 신너 (10~25%)<br><span style='font-size:13px; color:#cbd5e1;'>50% 중첩이 완벽하게 이루어진 정상 도막.</span>";
-            resultText.style.color = "#f8fafc";
+            resultPhoto.style.borderColor = "rgba(16, 185, 129, 0.8)"; 
+            resultText.innerHTML = "<span class='title-success'>✅ [A급 도막] 적정 신너 (10~25%)</span>50% 오버랩(중첩)이 완벽하게 이루어졌습니다. 결함 없는 매끄러운 정상 도막이 형성되었습니다.";
         } else {
             resultPhoto.src = "running.jpg"; 
-            resultPhoto.style.borderColor = "#e11d48"; 
-            resultText.innerHTML = "🚨 <b style='color:#e11d48;'>[러닝 불량]</b> 신너 과다 (25% 초과)<br><span style='font-size:13px; color:#cbd5e1;'>도막이 철판에 안착하지 못하고 줄줄 흘러내림.</span>";
-            resultText.style.color = "#f8fafc";
+            resultPhoto.style.borderColor = "rgba(244, 63, 94, 0.8)"; 
+            resultText.innerHTML = "<span class='title-error'>🚨 [러닝 결함] 신너 과다 (25% 초과)</span>도료가 물처럼 묽어져 수직면(철판)에 안착하지 못하고 줄줄 흘러내리는 러닝/새깅(Running/Sagging) 결함이 즉시 발생합니다.";
             
-            ctx.fillStyle = 'rgba(14, 116, 144, 0.95)';
+            // 흐름 그래픽 효과
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.95)';
             for (let i=0; i<7; i++) {
-                let dripX = 25 + (i * 40);
-                ctx.beginPath(); ctx.roundRect(dripX, 80, 10, 80 + Math.random()*80, 5); ctx.fill();
+                let dripX = 25 + (i * 42);
+                ctx.beginPath(); ctx.roundRect(dripX, 90, 10, 80 + Math.random()*80, 5); ctx.fill();
             }
         }
     }
@@ -180,21 +197,21 @@
         const canvas = document.getElementById('paint-canvas');
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
-        document.getElementById('gun-container').style.left = '-50px';
-        document.getElementById('gun-container').style.top = '-10px';
-        document.getElementById('photo-box').style.display = 'none';
+        document.getElementById('gun-container').style.left = '-60px';
+        document.getElementById('gun-container').style.top = '20px';
+        document.getElementById('result-box').style.display = 'none';
         clearInterval(animationTimer);
     }
 
     function resetGame() {
         resetCanvas();
-        document.getElementById('result-text').innerText = "시스템 대기 중...";
-        document.getElementById('result-text').style.color = "#64748b";
         document.getElementById('spray-cone').classList.add('hidden');
+        document.getElementById('thinner-slider').value = 15;
+        updateThinner();
         
         const startBtn = document.getElementById('start-btn');
         startBtn.disabled = false;
-        startBtn.innerText = "도장 작업 실행 ▶";
+        startBtn.innerText = "도장 테스트 시작";
     }
 </script>
 
