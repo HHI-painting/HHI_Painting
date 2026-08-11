@@ -3,107 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에어리스 팁(Tip) 시뮬레이터 (스마트 UI)</title>
+    <title>에어리스 팁 시뮬레이터 PRO</title>
     <style>
-        /* 1. 모바일 화면 삐져나감 완벽 방지 */
-        * { box-sizing: border-box; }
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #0f172a; margin: 0; padding: 15px; text-align: center; color: #f8fafc; }
+        /* 트렌디한 앱 스타일 디자인 (글래스모피즘, 네온 쉐도우) */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        * { box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
+        body { background-color: #0b1120; margin: 0; padding: 15px; text-align: center; color: #f8fafc; }
         
-        .game-board { background: linear-gradient(145deg, #1e293b, #0f172a); width: 100%; max-width: 450px; margin: 0 auto; padding: 25px 20px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1); border: 1px solid #334155; }
+        .game-board { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); width: 100%; max-width: 450px; margin: 0 auto; padding: 30px 20px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); }
         
-        h2 { color: #38bdf8; font-size: 22px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(56,189,248,0.3); letter-spacing: 1px; }
-        p.subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
+        h2 { color: #fff; font-size: 24px; font-weight: 900; margin-bottom: 5px; text-shadow: 0 0 20px rgba(56,189,248,0.6); letter-spacing: -0.5px; }
+        p.subtitle { color: #38bdf8; font-size: 11px; font-weight: 700; margin-bottom: 30px; letter-spacing: 2px; }
         
-        /* 2. 모바일 기기 크기에 맞춰 철판 1:1 비율로 자동 축소/확대 */
-        #panel-container { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; margin: 0 auto 15px auto; background-color: #0a0f18; border: 3px solid #020617; border-radius: 12px; box-shadow: inset 0 0 25px rgba(0,0,0,0.9); overflow: hidden; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        /* 철판 화면 디자인 업그레이드 */
+        #panel-container { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; margin: 0 auto 20px auto; background: linear-gradient(135deg, #131c2c, #0a0f18); border: 2px solid #1e293b; border-radius: 16px; box-shadow: inset 0 10px 30px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.5); overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.6)); }
         
-        /* 3. 화면이 작아져도 가이드라인 위치가 일치하도록 % 단위로 수정 */
-        .guide-line-h { position: absolute; width: 100%; border-top: 1px dashed rgba(100,116,139,0.5); left: 0; z-index: 1; display: flex; justify-content: flex-end; align-items: flex-start; padding-right: 10px; color: rgba(100,116,139,0.8); font-size: 11px; font-weight: bold; }
-        .guide-center { top: 50%; border-top: 1px solid rgba(148,163,184,0.3); }
+        /* 가이드라인 (인치 적용) */
+        .guide-line-h { position: absolute; width: 100%; border-top: 1px dashed rgba(148,163,184,0.15); left: 0; z-index: 1; display: flex; justify-content: flex-end; align-items: flex-start; padding-right: 12px; padding-top: 4px; color: rgba(148,163,184,0.7); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+        .guide-center { top: 50%; border-top: 1px solid rgba(56, 189, 248, 0.3); color: rgba(56, 189, 248, 0.7); }
         .guide-30-t { top: 30%; } .guide-30-b { top: 70%; }
         .guide-40-t { top: 17.5%; }  .guide-40-b { top: 82.5%; }
         .guide-50-t { top: 5%; }  .guide-50-b { top: 95%; }
 
-        /* 4. 총기 이미지 역시 모바일 화면 크기에 비례하여 자동으로 자리 잡도록 % 단위로 수정 */
-        #gun-nozzle { 
-            position: absolute; 
-            top: 35%; 
-            left: 65%; 
-            width: 25%; 
-            height: 25%;
-            object-fit: cover; 
-            border-radius: 12%; 
-            border: 2px solid #64748b;
-            filter: drop-shadow(5px 10px 8px rgba(0,0,0,0.6));
-            z-index: 10; 
-            transform: rotate(90deg); 
-        }
-        
-        @keyframes recoil {
-            0% { transform: rotate(90deg) translateY(0px); }
-            25% { transform: rotate(88deg) translateY(-2px); }
-            50% { transform: rotate(92deg) translateY(2px); }
-            75% { transform: rotate(88deg) translateY(-2px); }
-            100% { transform: rotate(90deg) translateY(0px); }
-        }
+        /* 총기 애니메이션 및 쉐도우 */
+        #gun-nozzle { position: absolute; top: 35%; left: 65%; width: 25%; height: 25%; object-fit: cover; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2); filter: drop-shadow(0 15px 20px rgba(0,0,0,0.8)); z-index: 10; transform: rotate(90deg); }
+        @keyframes recoil { 0% { transform: rotate(90deg) translateY(0px); } 50% { transform: rotate(92deg) translateY(4px); } 100% { transform: rotate(90deg) translateY(0px); } }
         .shooting { animation: recoil 0.05s infinite; }
 
-        .controls { text-align: left; background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid #334155; }
-        .select-group { margin-bottom: 10px; display: flex; flex-direction: column; }
-        .select-group label { font-weight: bold; margin-bottom: 8px; color: #cbd5e1; font-size: 14px; }
+        /* 컨트롤 패널 세련되게 변경 */
+        .controls { text-align: left; background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 16px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.03); }
+        .select-group label { font-weight: 700; margin-bottom: 12px; display: block; color: #e2e8f0; font-size: 14px; }
         
-        /* 선택창(select) 가로폭 100% 꽉 차게 수정 */
-        select { background-color: #0f172a; color: #f8fafc; padding: 12px; font-size: 15px; border-radius: 8px; border: 1px solid #334155; font-family: inherit; font-weight: bold; cursor: pointer; outline: none; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); width: 100%; }
-        select:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.3); }
-        select optgroup { color: #94a3b8; font-style: normal; }
-        select option { color: #f8fafc; }
+        select { background-color: #1e293b; color: #fff; padding: 15px; font-size: 15px; border-radius: 12px; border: 1px solid #334155; font-weight: 700; cursor: pointer; outline: none; transition: all 0.3s; width: 100%; -webkit-appearance: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        select:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.2); }
+        select optgroup { color: #94a3b8; font-weight: 400; background: #0f172a; }
+        select option { color: #f8fafc; font-weight: 700; }
 
-        .btn-start { width: 100%; padding: 16px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(37,99,235,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.3); transition: all 0.2s; letter-spacing: 1px; }
-        .btn-start:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37,99,235,0.6); }
-        .btn-start:active { transform: translateY(2px); box-shadow: 0 2px 10px rgba(37,99,235,0.4); }
-        .btn-start:disabled { background: #475569; color: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
+        .btn-start { width: 100%; padding: 16px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; font-size: 16px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; margin-top: 20px; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3); transition: all 0.3s; letter-spacing: 1px; }
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(14, 165, 233, 0.5); background: linear-gradient(135deg, #0284c7, #1d4ed8); }
+        .btn-start:active { transform: translateY(1px); }
+        .btn-start:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; transform: none; }
         
-        #result-box { margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.25); border: 1px solid #334155; border-radius: 10px; text-align: left; word-break: keep-all; }
-        #result-title { font-size: 16px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; }
+        /* 결과창 디자인 (숨겨놨다가 나타남) */
+        #result-box { margin-top: 15px; padding: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; text-align: left; word-break: keep-all; transition: all 0.3s; display: none; }
+        #result-box.error { background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); }
+        #result-title { font-size: 16px; font-weight: 900; color: #10b981; margin-bottom: 10px; display: flex; align-items: center; }
+        #result-box.error #result-title { color: #f43f5e; }
         #result-desc { font-size: 14px; color: #cbd5e1; line-height: 1.6; }
-        .highlight { font-weight: bold; color: #f43f5e; text-shadow: 0 0 5px rgba(244,63,94,0.4); }
-        .good { font-weight: bold; color: #10b981; }
+        .highlight { color: #f43f5e; font-weight: 700; }
     </style>
 </head>
 <body>
 
 <div class="game-board">
-    <h2>🎯 스마트 팁(Tip) 시뮬레이터</h2>
-    <p class="subtitle">AIRLESS NOZZLE TIP SELECTION SYSTEM</p>
+    <h2>🎯 팁(Tip) 시뮬레이터 PRO</h2>
+    <p class="subtitle">SMART AIRLESS SELECTION UI</p>
 
-    <!-- 시편(철판) 화면 (모바일 반응형 사이즈) -->
     <div id="panel-container">
-        <div class="guide-line-h guide-50-t">50° (넓음)</div>
-        <div class="guide-line-h guide-40-t">40° (보통)</div>
-        <div class="guide-line-h guide-30-t">30° (좁음)</div>
-        <div class="guide-line-h guide-center">중심축</div>
-        <div class="guide-line-h guide-30-b">30°</div>
-        <div class="guide-line-h guide-40-b">40°</div>
-        <div class="guide-line-h guide-50-b">50°</div>
+        <!-- 배경 가이드라인 인치(Inch)로 변경 -->
+        <div class="guide-line-h guide-50-t">5 인치 (넓음)</div>
+        <div class="guide-line-h guide-40-t">4 인치 (보통)</div>
+        <div class="guide-line-h guide-30-t">3 인치 (좁음)</div>
+        <div class="guide-line-h guide-center">CENTER</div>
+        <div class="guide-line-h guide-30-b">3 인치</div>
+        <div class="guide-line-h guide-40-b">4 인치</div>
+        <div class="guide-line-h guide-50-b">5 인치</div>
         
         <canvas id="paint-canvas" width="400" height="400"></canvas>
-        
-        <img id="gun-nozzle" src="KakaoTalk_20260810_204330582.jpg" alt="실제 에어리스 건">
+        <img id="gun-nozzle" src="KakaoTalk_20260810_204330582.jpg" alt="건">
     </div>
 
-    <!-- 결과 설명창 -->
+    <!-- 결과창 (초기엔 숨김 처리) -->
     <div id="result-box">
-        <div id="result-title">시스템 대기 중...</div>
-        <div id="result-desc">스프레이 팁(Tip) 규격을 세팅하고 발사 버튼을 누르세요.</div>
+        <div id="result-title"></div>
+        <div id="result-desc"></div>
     </div>
 
-    <!-- 컨트롤 패널 -->
     <div class="controls">
         <div class="select-group">
-            <label>⚙️ 에어리스 팁(Tip) 규격 세팅:</label>
+            <label>⚙️ 에어리스 팁(Tip) 규격 선택</label>
             <select id="tip-select">
-                <optgroup label="분사폭 30도 (각철/협소구역용)">
+                <optgroup label="■ 패턴폭: 약 3인치 (협소구역용)">
                     <option value="315">315 (토출량 매우 적음)</option>
                     <option value="317">317 (토출량 적음)</option>
                     <option value="319">319 (토출량 보통)</option>
@@ -111,14 +92,14 @@
                     <option value="323">323 (토출량 매우 많음)</option>
                     <option value="325">325 (토출량 과다)</option>
                 </optgroup>
-                <optgroup label="분사폭 40도 (일반 평판용)">
+                <optgroup label="■ 패턴폭: 약 4인치 (일반 평판용)">
                     <option value="415">415</option>
-                    <option value="419" selected>419 (현장 표준/가장 많이 씀)</option>
+                    <option value="419" selected>419 (현장 표준 규격)</option>
                     <option value="421">421</option>
                     <option value="423">423</option>
                     <option value="425">425</option>
                 </optgroup>
-                <optgroup label="분사폭 50도 (대형 외판용)">
+                <optgroup label="■ 패턴폭: 약 5인치 (대형 외판용)">
                     <option value="515">515</option>
                     <option value="517">517</option>
                     <option value="519">519</option>
@@ -128,7 +109,7 @@
                 </optgroup>
             </select>
         </div>
-        <button class="btn-start" id="start-btn" onclick="startSpray()">도장 작업 실행 ▶</button>
+        <button class="btn-start" id="start-btn" onclick="startSpray()">도장 테스트 시작</button>
     </div>
 </div>
 
@@ -141,6 +122,7 @@
         const canvas = document.getElementById('paint-canvas');
         const ctx = canvas.getContext('2d');
         const gun = document.getElementById('gun-nozzle');
+        const resultBox = document.getElementById('result-box');
         const resultTitle = document.getElementById('result-title');
         const resultDesc = document.getElementById('result-desc');
         const startBtn = document.getElementById('start-btn');
@@ -148,48 +130,51 @@
         startBtn.disabled = true;
         startBtn.innerText = "분사 시스템 가동 중...";
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        resultBox.style.display = 'none';
+        resultBox.className = '';
 
         gun.classList.add('shooting');
 
+        // 분사폭을 인치 기준으로 매칭
         let targetHeight = 0;
         let angleText = "";
-        if (angleDigit === 3) { targetHeight = 160; angleText = "30도 (좁음)"; }
-        else if (angleDigit === 4) { targetHeight = 260; angleText = "40도 (보통)"; }
-        else if (angleDigit === 5) { targetHeight = 360; angleText = "50도 (넓음)"; }
+        if (angleDigit === 3) { targetHeight = 160; angleText = "약 3 인치 (협소용)"; }
+        else if (angleDigit === 4) { targetHeight = 260; angleText = "약 4 인치 (표준용)"; }
+        else if (angleDigit === 5) { targetHeight = 360; angleText = "약 5 인치 (광폭용)"; }
 
         let targetWidth = 0;
         let opacity = 0;
         let amountText = "";
         let isSagging = false;
 
-        if (orificeSize === 15) { targetWidth = 25; opacity = 0.4; amountText = "매우 적음 (0.015\") - 얇은 도막"; }
+        if (orificeSize === 15) { targetWidth = 25; opacity = 0.4; amountText = "매우 적음 (0.015\")"; }
         else if (orificeSize === 17) { targetWidth = 35; opacity = 0.6; amountText = "적음 (0.017\")"; }
         else if (orificeSize === 19) { targetWidth = 50; opacity = 0.8; amountText = "보통 (0.019\") - 현장 표준"; }
-        else if (orificeSize === 21) { targetWidth = 70; opacity = 0.95; amountText = "많음 (0.021\") - 후막형 도료용"; }
-        else if (orificeSize === 23) { targetWidth = 90; opacity = 1.0; amountText = "매우 많음 (0.023\") - 칠 주의"; }
-        else if (orificeSize === 25) { targetWidth = 110; opacity = 1.0; amountText = "과다 (0.025\") - 흐름(새깅) 위험!"; isSagging = true; }
-
-        resultTitle.innerText = `🔍 분석 완료: [TIP 번호 ${tip}]`;
-        resultDesc.innerHTML = `
-            • <span style="color:#94a3b8;">분사폭(세로 길이):</span> <b style="color:#f8fafc;">${angleText}</b><br>
-            • <span style="color:#94a3b8;">토출량(도막 두께):</span> <b style="color:#f8fafc;">${amountText}</b><br>
-            <br>
-            ${isSagging ? "<span class='highlight'>🚨 시스템 경고: 구멍(Orifice)이 너무 커 도료가 과다 토출됩니다. 흐름(Sagging) 결함이 즉시 발생합니다!</span>" 
-            : orificeSize <= 17 && angleDigit === 5 ? "<span class='highlight'>⚠️ 시스템 주의: 넓은 분사폭 대비 토출량이 부족합니다. 도막이 너무 얇게(Dry Spray) 입혀질 수 있습니다.</span>"
-            : "<span class='good'>✅ 안정적이고 균일한 분사 패턴입니다.</span>"}
-        `;
+        else if (orificeSize === 21) { targetWidth = 70; opacity = 0.95; amountText = "많음 (0.021\") - 후막형"; }
+        else if (orificeSize === 23) { targetWidth = 90; opacity = 1.0; amountText = "매우 많음 (0.023\")"; }
+        else if (orificeSize === 25) { targetWidth = 110; opacity = 1.0; amountText = "과다 (0.025\") - 흐름 위험!"; isSagging = true; }
 
         let currentScale = 0;
         const animationTimer = setInterval(() => {
-            currentScale += 0.05;
+            currentScale += 0.06;
             if (currentScale >= 1) {
                 currentScale = 1;
                 clearInterval(animationTimer);
                 startBtn.disabled = false;
-                startBtn.innerText = "도장 작업 재실행 ▶";
+                startBtn.innerText = "다시 테스트하기";
                 gun.classList.remove('shooting'); 
                 
+                // 결과창 세팅 및 노출
+                resultBox.style.display = 'block';
                 if (isSagging) {
+                    resultBox.classList.add('error');
+                    resultTitle.innerHTML = `🚨 시스템 경고: [TIP ${tip}]`;
+                    resultDesc.innerHTML = `
+                        • 폭(세로): <b style="color:#fff;">${angleText}</b><br>
+                        • 두께(토출): <b style="color:#fff;">${amountText}</b><br><br>
+                        <span class='highlight'>구멍(Orifice)이 너무 커 도료가 과다 토출됩니다. 흐름(Sagging) 결함이 즉시 발생합니다!</span>
+                    `;
+                    // 흐름(Sagging) 그래픽 효과
                     ctx.fillStyle = `rgba(255, 220, 0, 0.95)`;
                     for (let i = 0; i < 6; i++) {
                         let dripX = 200 + (Math.random() - 0.5) * (targetWidth * 0.9);
@@ -198,11 +183,25 @@
                         ctx.roundRect(dripX, dripYStart, 6, 50 + Math.random() * 80, 3); 
                         ctx.fill();
                     }
+                } else if (orificeSize <= 17 && angleDigit === 5) {
+                    resultBox.classList.add('error');
+                    resultTitle.innerHTML = `⚠️ 시스템 주의: [TIP ${tip}]`;
+                    resultDesc.innerHTML = `
+                        • 폭(세로): <b style="color:#fff;">${angleText}</b><br>
+                        • 두께(토출): <b style="color:#fff;">${amountText}</b><br><br>
+                        <span class='highlight'>넓은 분사폭 대비 토출량이 부족합니다. 도막이 너무 얇게(Dry Spray) 입혀질 수 있습니다.</span>
+                    `;
+                } else {
+                    resultTitle.innerHTML = `✅ 분석 완료: [TIP ${tip}]`;
+                    resultDesc.innerHTML = `
+                        • 폭(세로): <b style="color:#fff;">${angleText}</b><br>
+                        • 두께(토출): <b style="color:#fff;">${amountText}</b><br><br>
+                        안정적이고 균일한 분사 패턴입니다. 실무에 적합합니다.
+                    `;
                 }
             }
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             ctx.fillStyle = `rgba(255, 220, 0, ${opacity * currentScale})`;
             ctx.beginPath();
             ctx.ellipse(200, 200, (targetWidth / 2) * currentScale, (targetHeight / 2) * currentScale, 0, 0, Math.PI * 2);
