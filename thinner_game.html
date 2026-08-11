@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도장 시뮬레이터: 신너 희석비 (모바일 반응형)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #0f172a; margin: 0; padding: 15px; text-align: center; color: #f8fafc; }
+        
+        .game-board { background: linear-gradient(145deg, #1e293b, #0f172a); width: 100%; max-width: 400px; margin: 0 auto; padding: 25px 20px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1); border: 1px solid #334155; }
+        
+        h2 { color: #38bdf8; font-size: 22px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(56,189,248,0.3); letter-spacing: 1px; }
+        p.subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
+        
+        #panel-container { position: relative; width: 300px; height: 250px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #475569, #1e293b); border: 3px solid #020617; border-radius: 12px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        
+        #gun-container { position: absolute; top: 20px; left: -50px; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(5px 10px 8px rgba(0,0,0,0.6)); }
+        #spray-gun { width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 2px solid #64748b; margin-bottom: -5px; transform: none; }
+        
+        .cone-solid { width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid rgba(14, 116, 144, 0.7); }
+        .cone-split { width: 40px; height: 40px; background: linear-gradient(90deg, rgba(14,116,144,0.9) 20%, rgba(14,116,144,0.2) 20%, rgba(14,116,144,0.2) 80%, rgba(14,116,144,0.9) 80%); clip-path: polygon(50% 0, 0 100%, 100% 100%); }
+        .hidden { display: none !important; }
+
+        #photo-box { display: none; margin-top: 15px; animation: slideUp 0.5s ease-out; width: 100%; }
+        #result-photo { width: 100%; max-height: 250px; object-fit: cover; border-radius: 12px; border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56,189,248,0.2); background-color: #1e293b; color: #94a3b8; font-size: 14px; text-align: center; line-height: 100px; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .controls { text-align: left; background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid #334155; }
+        .slider-group label { font-weight: bold; display: block; margin-bottom: 12px; color: #cbd5e1; font-size: 14px; }
+        .gauge-value { color: #38bdf8; font-size: 20px; font-weight: 900; text-shadow: 0 0 10px rgba(56,189,248,0.5); }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; background: #0f172a; border-radius: 5px; outline: none; border: 1px solid #334155; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: #38bdf8; border-radius: 50%; cursor: pointer; box-shadow: 0 0 15px #38bdf8; border: 2px solid #fff; transition: transform 0.1s; }
+        
+        .btn-start { width: 100%; padding: 16px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(37,99,235,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.3); transition: all 0.2s; }
+        .btn-start:disabled { background: #475569; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
+        
+        #result-text { margin-top: 15px; font-size: 15px; font-weight: bold; min-height: 25px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); word-break: keep-all; }
+        .reset-btn { background: none; border: none; color: #64748b; cursor: pointer; margin-top: 20px; font-size: 14px; text-decoration: underline; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="game-board">
+    <h2>🎯 스마트 도장 시뮬레이터</h2>
+    <p class="subtitle">THINNER DILUTION RATIO SYSTEM</p>
+
+    <div id="panel-container">
+        <canvas id="paint-canvas" width="300" height="250"></canvas>
+        <div id="gun-container">
+            <img id="spray-gun" src="KakaoTalk_20260810_204330582.jpg" alt="실제 건">
+            <div id="spray-cone" class="hidden"></div>
+        </div>
+    </div>
+
+    <!-- 결과 사진 -->
+    <div id="photo-box">
+        <img id="result-photo" src="" alt="결과 사진">
+    </div>
+
+    <div id="result-text" style="color: #64748b;">시스템 대기 중...</div>
+
+    <div class="controls">
+        <div class="slider-group">
+            <label>💧 신너(Thinner) 희석비 세팅: <span id="thinner-val" class="gauge-value">15</span><span style="color:#94a3b8;"> %</span></label>
+            <input type="range" id="thinner-slider" min="0" max="100" value="15" oninput="updateThinner()">
+        </div>
+        <button class="btn-start" id="start-btn" onclick="startSpray()">도장 작업 실행 ▶</button>
+    </div>
+    
+    <button class="reset-btn" onclick="resetGame()">🔄 시스템 초기화 (Reset)</button>
+</div>
+
+<script>
+    function updateThinner() {
+        document.getElementById('thinner-val').innerText = document.getElementById('thinner-slider').value;
+    }
+
+    let animationTimer;
+
+    function startSpray() {
+        const thinnerRatio = parseInt(document.getElementById('thinner-slider').value);
+        
+        document.getElementById('start-btn').disabled = true;
+        document.getElementById('start-btn').innerText = "작업 진행 중...";
+        resetCanvas();
+
+        const canvas = document.getElementById('paint-canvas');
+        const ctx = canvas.getContext('2d');
+        const gunBox = document.getElementById('gun-container');
+        const sprayCone = document.getElementById('spray-cone');
+        const resultText = document.getElementById('result-text');
+        
+        sprayCone.classList.remove('hidden', 'cone-solid', 'cone-split');
+        if (thinnerRatio < 10) {
+            sprayCone.classList.add('cone-split');
+        } else {
+            sprayCone.classList.add('cone-solid');
+        }
+
+        resultText.innerText = "스프레이 로봇 가동 중 (오버랩 50%)...";
+        resultText.style.color = "#38bdf8";
+
+        let x = 0;           
+        let y = -10; 
+        let direction = 1;   
+        
+        const speed = 6;     
+        const overlapY = 45; 
+
+        animationTimer = setInterval(() => {
+            x += speed * direction;
+            gunBox.style.left = (x - 15) + 'px'; 
+            gunBox.style.top = y + 'px';
+
+            if (thinnerRatio < 10) {
+                ctx.fillStyle = 'rgba(14, 116, 144, 0.2)'; 
+                ctx.beginPath(); ctx.arc(x + 22, y + 75, 20, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(14, 116, 144, 0.9);'; 
+                ctx.beginPath(); ctx.arc(x + 8, y + 75, 10, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + 36, y + 75, 10, 0, Math.PI * 2); ctx.fill();
+            } else {
+                ctx.fillStyle = 'rgba(14, 116, 144, 0.45)'; 
+                ctx.beginPath(); ctx.arc(x + 22, y + 75, 25, 0, Math.PI * 2); ctx.fill();
+            }
+
+            if (x >= 280 && direction === 1) {
+                direction = -1;
+                y += overlapY; 
+            } else if (x <= -20 && direction === -1) {
+                direction = 1;
+                y += overlapY;
+            }
+
+            if (y > 170) {
+                clearInterval(animationTimer);
+                sprayCone.classList.add('hidden'); 
+                showResult(thinnerRatio, ctx);
+            }
+        }, 20); 
+    }
+
+    function showResult(thinnerRatio, ctx) {
+        const photoBox = document.getElementById('photo-box');
+        const resultPhoto = document.getElementById('result-photo');
+        const resultText = document.getElementById('result-text');
+        const startBtn = document.getElementById('start-btn');
+
+        photoBox.style.display = 'block';
+        startBtn.disabled = false;
+        startBtn.innerText = "도장 작업 재실행 ▶";
+
+        if (thinnerRatio < 10) {
+            resultPhoto.src = "fingering.jpg"; 
+            resultPhoto.style.borderColor = "#f43f5e"; 
+            resultText.innerHTML = "❌ <b style='color:#f43f5e;'>[핑거링 결함]</b> 신너 부족 (10% 미만)<br><span style='font-size:13px; color:#cbd5e1;'>미립화 불량으로 양쪽이 갈라지고 얇게 도장됨.</span>";
+            resultText.style.color = "#f8fafc";
+        } else if (thinnerRatio >= 10 && thinnerRatio <= 25) {
+            resultPhoto.src = "normal.jpg"; 
+            resultPhoto.style.borderColor = "#10b981"; 
+            resultText.innerHTML = "✅ <b style='color:#10b981;'>[A급 도막]</b> 적정 신너 (10~25%)<br><span style='font-size:13px; color:#cbd5e1;'>50% 중첩이 완벽하게 이루어진 정상 도막.</span>";
+            resultText.style.color = "#f8fafc";
+        } else {
+            resultPhoto.src = "running.jpg"; 
+            resultPhoto.style.borderColor = "#e11d48"; 
+            resultText.innerHTML = "🚨 <b style='color:#e11d48;'>[러닝 불량]</b> 신너 과다 (25% 초과)<br><span style='font-size:13px; color:#cbd5e1;'>도막이 철판에 안착하지 못하고 줄줄 흘러내림.</span>";
+            resultText.style.color = "#f8fafc";
+            
+            ctx.fillStyle = 'rgba(14, 116, 144, 0.95)';
+            for (let i=0; i<7; i++) {
+                let dripX = 25 + (i * 40);
+                ctx.beginPath(); ctx.roundRect(dripX, 80, 10, 80 + Math.random()*80, 5); ctx.fill();
+            }
+        }
+    }
+
+    function resetCanvas() {
+        const canvas = document.getElementById('paint-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        document.getElementById('gun-container').style.left = '-50px';
+        document.getElementById('gun-container').style.top = '-10px';
+        document.getElementById('photo-box').style.display = 'none';
+        clearInterval(animationTimer);
+    }
+
+    function resetGame() {
+        resetCanvas();
+        document.getElementById('result-text').innerText = "시스템 대기 중...";
+        document.getElementById('result-text').style.color = "#64748b";
+        document.getElementById('spray-cone').classList.add('hidden');
+        
+        const startBtn = document.getElementById('start-btn');
+        startBtn.disabled = false;
+        startBtn.innerText = "도장 작업 실행 ▶";
+    }
+</script>
+
+</body>
+</html>
