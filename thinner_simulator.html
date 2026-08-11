@@ -43,9 +43,9 @@
         .btn-start:active { transform: translateY(1px); }
         .btn-start:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; transform: none; }
         
-        /* 고급스러운 결과창 디자인 */
-        #result-box { margin-top: 15px; padding: 15px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: none; flex-direction: column; gap: 15px; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* 결과창 부드러운 등장(Fade-in) 애니메이션 적용 */
+        #result-box { margin-top: 15px; padding: 15px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: none; flex-direction: column; gap: 15px; opacity: 0; animation: smoothFadeIn 1.5s ease-out forwards; }
+        @keyframes smoothFadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
         
         #result-photo { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; border: 2px solid transparent; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         #result-text { font-size: 14px; color: #cbd5e1; line-height: 1.6; text-align: left; word-break: keep-all; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
@@ -167,6 +167,7 @@
         const resultText = document.getElementById('result-text');
         const startBtn = document.getElementById('start-btn');
 
+        // 결과창 다시 띄우기 (애니메이션 재시작)
         resultBox.style.display = 'flex';
         startBtn.disabled = false;
         startBtn.innerText = "다시 테스트하기";
@@ -199,7 +200,11 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
         document.getElementById('gun-container').style.left = '-60px';
         document.getElementById('gun-container').style.top = '20px';
-        document.getElementById('result-box').style.display = 'none';
+        
+        // 결과창 숨길 때 클래스 초기화
+        const resultBox = document.getElementById('result-box');
+        resultBox.style.display = 'none';
+        
         clearInterval(animationTimer);
     }
 
