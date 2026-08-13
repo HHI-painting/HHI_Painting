@@ -82,9 +82,9 @@
         <div class="slider-group">
             <label>
                 <span>신너(Thinner) 희석비 세팅</span>
-                <span><span id="thinner-val" class="gauge-value">13</span><span style="color:#94a3b8; font-weight: 400;"> %</span></span>
+                <span><span id="thinner-val" class="gauge-value">10</span><span style="color:#94a3b8; font-weight: 400;"> %</span></span>
             </label>
-            <input type="range" id="thinner-slider" min="0" max="100" value="13" oninput="updateThinner()">
+            <input type="range" id="thinner-slider" min="0" max="100" value="10" oninput="updateThinner()">
         </div>
         <button class="btn-start" id="start-btn" onclick="startSpray()">도장 테스트 시작</button>
     </div>
@@ -177,14 +177,14 @@
             resultPhoto.src = "fingering.jpg"; 
             resultPhoto.style.borderColor = "rgba(244, 63, 94, 0.8)"; 
             resultText.innerHTML = "<span class='title-error'>❌ [핑거링 결함] 신너 부족 (0~5%)</span>도료의 점도가 너무 높아 미립화가 정상적으로 이루어지지 않습니다. 가장자리가 갈라지는 핑거링(Fingering) 현상이 발생했습니다.";
-        } else if (thinnerRatio >= 6 && thinnerRatio <= 20) {
+        } else if (thinnerRatio >= 6 && thinnerRatio <= 15) {
             resultPhoto.src = "normal.jpg"; 
             resultPhoto.style.borderColor = "rgba(16, 185, 129, 0.8)"; 
-            resultText.innerHTML = "<span class='title-success'>✅ [A급 도막] 적정 신너 (6~20%)</span>50% 오버랩(중첩)이 완벽하게 이루어졌습니다. 결함 없는 매끄러운 정상 도막이 형성되었습니다.";
+            resultText.innerHTML = "<span class='title-success'>✅ [A급 도막] 적정 신너 (6~15%)</span>50% 오버랩(중첩)이 완벽하게 이루어졌습니다. 결함 없는 매끄러운 정상 도막이 형성되었습니다.";
         } else {
             resultPhoto.src = "running.jpg"; 
             resultPhoto.style.borderColor = "rgba(244, 63, 94, 0.8)"; 
-            resultText.innerHTML = "<span class='title-error'>🚨 [러닝 결함] 신너 과다 (21% 이상)</span>도료가 물처럼 묽어져 수직면(철판)에 안착하지 못하고 줄줄 흘러내리는 러닝/새깅(Running/Sagging) 결함이 즉시 발생합니다.";
+            resultText.innerHTML = "<span class='title-error'>🚨 [러닝 결함] 신너 과다 (16% 이상)</span>도료가 물처럼 묽어져 수직면(철판)에 안착하지 못하고 줄줄 흘러내리는 러닝/새깅(Running/Sagging) 결함이 즉시 발생합니다.";
             
             // 흐름 그래픽 효과
             ctx.fillStyle = 'rgba(14, 165, 233, 0.95)';
@@ -212,7 +212,7 @@
     function resetGame() {
         resetCanvas();
         document.getElementById('spray-cone').classList.add('hidden');
-        document.getElementById('thinner-slider').value = 13;
+        document.getElementById('thinner-slider').value = 10;
         updateThinner();
         
         const startBtn = document.getElementById('start-btn');
